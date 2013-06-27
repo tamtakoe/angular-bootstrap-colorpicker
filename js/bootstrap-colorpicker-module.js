@@ -28,14 +28,44 @@ angular.module('colorpicker.module', [])
       restrict: 'A',
       link: function(scope, element, attrs, ngModel) {
 
-        var thisFormat = helper.prepareValues(attrs.colorpicker);
+        var thisFormat = {name: 'hex'},
+            show, hide;
+        
+        scope.$watch(attrs.colorpicker, function(newVal, oldVal){
+            if (typeof newVal === 'object') {
+                //Object: {format: 'hex', show: 'show callback', hide: 'hide callback'}
+                thisFormat = typeof newVal.format !== 'undefined' ? helper.prepareValues(newVal.format) : helper.prepareValues();
+                show = typeof newVal.show !== 'undefined' ? $parse(newVal.show) : false;
+                hide = typeof newVal.hide !== 'undefined' ? $parse(newVal.hide) : false;           
+            } else {
+                //String: 'hex'
+                thisFormat = helper.prepareValues(newVal);
+                show = false;
+                hide = false;
+            }
+        }, true);
 
         element.colorpicker({format: thisFormat.name});
         if(!ngModel) return;
 
-        element.colorpicker().on('changeColor', function(event) {
+        element.colorpicker()
+        .on('changeColor', function(event) {
           element.val(element.data('colorpicker').format(event.color[thisFormat.transform]()));
           scope.$apply(ngModel.$setViewValue(element.data('colorpicker').format(event.color[thisFormat.transform]())));
+        })
+        .on('show', function(event){
+            if (show) {
+                scope.$apply(function() {
+                    show(scope);
+                });
+            }
+        })
+        .on('hide', function(event){
+            if (hide) {
+                scope.$apply(function() {
+                    hide(scope);
+                });
+            }
         });
 
         ngModel.$render = function() {
@@ -63,16 +93,46 @@ angular.module('colorpicker.module', [])
 
       link: function(scope, element, attrs, ngModel) {
 
-        var thisFormat = helper.prepareValues(attrs.colorFormat);
+        var thisFormat = {name: 'hex'},
+            show, hide;
+        
+        scope.$watch(attrs.colorpicker, function(newVal, oldVal){
+            if (typeof newVal === 'object') {
+                //Object: {format: 'hex', show: 'show callback', hide: 'hide callback'}
+                thisFormat = typeof newVal.format !== 'undefined' ? helper.prepareValues(newVal.format) : helper.prepareValues();
+                show = typeof newVal.show !== 'undefined' ? $parse(newVal.show) : false;
+                hide = typeof newVal.hide !== 'undefined' ? $parse(newVal.hide) : false;           
+            } else {
+                //String: 'hex'
+                thisFormat = helper.prepareValues(newVal);
+                show = false;
+                hide = false;
+            }
+        }, true);
 
         element.colorpicker();
         if(!ngModel) return;
 
         var elementInput = angular.element(element.children()[0]);
 
-        element.colorpicker().on('changeColor', function(event) {
+        element.colorpicker()
+        .on('changeColor', function(event) {
           elementInput.val(element.data('colorpicker').format(event.color[thisFormat.transform]()));
           scope.$parent.$apply(ngModel.$setViewValue(element.data('colorpicker').format(event.color[thisFormat.transform]())));
+        })
+        .on('show', function(event){
+            if (show) {
+                scope.$apply(function() {
+                    show(scope);
+                });
+            }
+        })
+        .on('hide', function(event){
+            if (hide) {
+                scope.$apply(function() {
+                    hide(scope);
+                });
+            }
         });
 
         ngModel.$render = function() {
